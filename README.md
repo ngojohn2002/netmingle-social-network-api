@@ -18,7 +18,7 @@ This project is an API for a social network web application where users can shar
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/your-username/social-network-api.git
+   git clone https://github.com/ngojohn2002/social-network-api.git
    cd social-network-api
    ```
 
