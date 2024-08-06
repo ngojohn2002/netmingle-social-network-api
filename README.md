@@ -185,3 +185,7 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
 ## License
 
 This project is licensed under the MIT License.
+
+© 2024 Truong Ngo. All rights reserved.  
+
+(18 NoSQL: Social Network API)
