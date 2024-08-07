@@ -1,6 +1,9 @@
+// Dependencies
 const { Thought, User } = require("../models");
 
+// Export the thought controller object with the following methods: 
 module.exports = {
+
   // Get all thoughts
   getThoughts(req, res) {
     Thought.find()
@@ -26,7 +29,7 @@ module.exports = {
         return User.findOneAndUpdate(
           { _id: req.body.userId },
           { $addToSet: { thoughts: thought._id } },
-          { new: true }
+          { new: true } // Return the updated user document with the new thought included 
         );
       })
       .then((user) =>
