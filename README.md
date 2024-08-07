@@ -210,40 +210,6 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
     }
     ```
 
-### Friends
-
-- **Add a friend to a user's friend list**
-  - **Request:**
-    ```
-    POST /api/users/:userId/friends/:friendId
-    ```
-  - **Example:**
-    ```
-    POST /api/users/60d0fe4f5311236168a109ca/friends/60d0fe4f5311236168a109cb
-    ```
-  - **Response:**
-    ```json
-    {
-      "message": "Friend added successfully!"
-    }
-    ```
-
-- **Remove a friend from a user's friend list**
-  - **Request:**
-    ```
-    DELETE /api/users/:userId/friends/:friendId
-    ```
-  - **Example:**
-    ```
-    DELETE /api/users/60d0fe4f5311236168a109ca/friends/60d0fe4f5311236168a109cb
-    ```
-  - **Response:**
-    ```json
-    {
-      "message": "Friend removed successfully!"
-    }
-    ```
-
 ### Thoughts
 
 - **Create a new thought**
@@ -355,6 +321,40 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
     ```json
     {
       "message": "Thought deleted successfully!"
+    }
+    ```
+
+### Friends
+
+- **Add a friend to a user's friend list**
+  - **Request:**
+    ```
+    POST /api/users/:userId/friends/:friendId
+    ```
+  - **Example:**
+    ```
+    POST /api/users/60d0fe4f5311236168a109ca/friends/60d0fe4f5311236168a109cb
+    ```
+  - **Response:**
+    ```json
+    {
+      "message": "Friend added successfully!"
+    }
+    ```
+
+- **Remove a friend from a user's friend list**
+  - **Request:**
+    ```
+    DELETE /api/users/:userId/friends/:friendId
+    ```
+  - **Example:**
+    ```
+    DELETE /api/users/60d0fe4f5311236168a109ca/friends/60d0fe4f5311236168a109cb
+    ```
+  - **Response:**
+    ```json
+    {
+      "message": "Friend removed successfully!"
     }
     ```
 
