@@ -2,8 +2,6 @@
 
 ![MIT License](https://img.shields.io/badge/license-MIT-green) ![Node.js](https://img.shields.io/badge/node.js-v14.17.3-blue) ![Express](https://img.shields.io/badge/express-v4.17.1-lightgrey) ![MongoDB](https://img.shields.io/badge/mongodb-v4.4.6-brightgreen)
 
-## Description
-
 NetMingle is an API for a social network web application where users can share their thoughts, react to friends' thoughts, and create a friend list. Built using Node.js, Express.js, and MongoDB with Mongoose ODM, this project was part of the curriculum for the edX Boot Camps LLC.
 
 ### User Story
@@ -34,9 +32,14 @@ THEN I am able to successfully create and delete reactions to thoughts and add a
 - [Technologies Used](#technologies-used)
 - [Getting Started](#getting-started)
 - [API Endpoints](#api-endpoints)
+  - [Users](#user)
+  - [Thoughts](#thought)
+  - [Friends](#friends)
+  - [Reactions](#reactions)
 - [Models](#models)
 - [Walkthrough Video](#walkthrough-video)
 - [Contributing](#contributing)
+- [Credits](#credits)
 - [License](#license)
 
 ## Features
@@ -210,6 +213,8 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
     }
     ```
 
+[Back to Table of Contents](#table-of-contents)
+
 ### Thoughts
 
 - **Create a new thought**
@@ -324,6 +329,8 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
     }
     ```
 
+[Back to Table of Contents](#table-of-contents)
+
 ### Friends
 
 - **Add a friend to a user's friend list**
@@ -357,6 +364,8 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
       "message": "Friend removed successfully!"
     }
     ```
+
+[Back to Table of Contents](#table-of-contents)
 
 ### Reactions
 
@@ -485,12 +494,20 @@ If you would like to contribute, please fork the repository and use a feature br
 
 [Back to Table of Contents](#table-of-contents)
 
+## Credits
+
+This project was made possible with the help of [ChatGPT](https://chatgpt.com/).
+
+[Back to Table of Contents](#table-of-contents)
+
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).
+
+[Back to Table of Contents](#table-of-contents)
+
+---
 
 © 2024 Truong Ngo. All rights reserved.
 
 (18 NoSQL: Social Network API)
-
-[Back to Table of Contents](#table-of-contents)
