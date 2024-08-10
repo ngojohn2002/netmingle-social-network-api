@@ -1,6 +1,10 @@
 # NetMingle: Social Network API
 
 ![MIT License](https://img.shields.io/badge/license-MIT-green) ![Node.js](https://img.shields.io/badge/node.js-v14.17.3-blue) ![Express](https://img.shields.io/badge/express-v4.17.1-lightgrey) ![MongoDB](https://img.shields.io/badge/mongodb-v4.4.6-brightgreen)
+![Mongoose](https://img.shields.io/badge/mongoose-v6.11.4-red)
+![Insomnia](https://img.shields.io/badge/insomnia-v2023.3.0-purple)
+
+## Description
 
 NetMingle is an API for a social network web application where users can share their thoughts, react to friends' thoughts, and create a friend list. Built using Node.js, Express.js, and MongoDB with Mongoose ODM, this project was part of the curriculum for the edX Boot Camps LLC.
 
@@ -33,8 +37,8 @@ THEN I am able to successfully create and delete reactions to thoughts and add a
 - [Getting Started](#getting-started)
 - [API Endpoints](#api-endpoints)
   - [Users](#users)
-  - [Thoughts](#thoughts)
   - [Friends](#friends)
+  - [Thoughts](#thoughts)
   - [Reactions](#reactions)
 - [Models](#models)
 - [Walkthrough Video](#walkthrough-video)
@@ -71,8 +75,8 @@ THEN I am able to successfully create and delete reactions to thoughts and add a
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/ngojohn2002/social-network-api.git
-   cd social-network-api
+   git clone https://github.com/ngojohn2002/netmingle-social-network-api.git
+   cd netmingle-social-network-api
    ```
 
 2. **Install the dependencies:**
@@ -215,6 +219,42 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
 
 [Back to Table of Contents](#table-of-contents)
 
+### Friends
+
+- **Add a friend to a user's friend list**
+  - **Request:**
+    ```
+    POST /api/users/:userId/friends/:friendId
+    ```
+  - **Example:**
+    ```
+    POST /api/users/60d0fe4f5311236168a109ca/friends/60d0fe4f5311236168a109cb
+    ```
+  - **Response:**
+    ```json
+    {
+      "message": "Friend added successfully!"
+    }
+    ```
+
+- **Remove a friend from a user's friend list**
+  - **Request:**
+    ```
+    DELETE /api/users/:userId/friends/:friendId
+    ```
+  - **Example:**
+    ```
+    DELETE /api/users/60d0fe4f5311236168a109ca/friends/60d0fe4f5311236168a109cb
+    ```
+  - **Response:**
+    ```json
+    {
+      "message": "Friend removed successfully!"
+    }
+    ```
+
+[Back to Table of Contents](#table-of-contents)
+
 ### Thoughts
 
 - **Create a new thought**
@@ -326,42 +366,6 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
     ```json
     {
       "message": "Thought deleted successfully!"
-    }
-    ```
-
-[Back to Table of Contents](#table-of-contents)
-
-### Friends
-
-- **Add a friend to a user's friend list**
-  - **Request:**
-    ```
-    POST /api/users/:userId/friends/:friendId
-    ```
-  - **Example:**
-    ```
-    POST /api/users/60d0fe4f5311236168a109ca/friends/60d0fe4f5311236168a109cb
-    ```
-  - **Response:**
-    ```json
-    {
-      "message": "Friend added successfully!"
-    }
-    ```
-
-- **Remove a friend from a user's friend list**
-  - **Request:**
-    ```
-    DELETE /api/users/:userId/friends/:friendId
-    ```
-  - **Example:**
-    ```
-    DELETE /api/users/60d0fe4f5311236168a109ca/friends/60d0fe4f5311236168a109cb
-    ```
-  - **Response:**
-    ```json
-    {
-      "message": "Friend removed successfully!"
     }
     ```
 
