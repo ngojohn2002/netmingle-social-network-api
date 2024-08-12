@@ -11,21 +11,35 @@ module.exports = {
       .then((thoughts) => res.json(thoughts))
       .catch((err) => {
         console.error("Error fetching thoughts:", err);
-        res.status(500).json(err);
+        res.status(500).json({
+          message:
+            "An error occurred while fetching thoughts. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
   // Get a single thought by ID
   getSingleThought(req, res) {
     Thought.findOne({ _id: req.params.thoughtId })
-      .then((thought) =>
-        !thought
-          ? res.status(404).json({ message: "No thought with that ID" })
-          : res.json(thought)
-      )
+      .then((thought) => {
+        if (!thought) {
+          return res.status(404).json({
+            message: `No thought found with ID: ${req.params.thoughtId}. Please verify the ID and try again.`,
+          });
+        }
+        res.json(thought);
+      })
       .catch((err) => {
-        console.error("Error fetching thought:", err);
-        res.status(500).json(err);
+        console.error(
+          `Error fetching thought with ID: ${req.params.thoughtId}`,
+          err
+        );
+        res.status(500).json({
+          message:
+            "An error occurred while fetching the thought. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
@@ -36,9 +50,9 @@ module.exports = {
     User.findById(req.body.userId)
       .then((user) => {
         if (!user) {
-          return res
-            .status(404)
-            .json({ message: "No user found with that ID" });
+          return res.status(404).json({
+            message: `No user found with ID: ${req.body.userId}. Cannot create thought without a valid user.`,
+          });
         }
 
         // If the user exists, create the thought
@@ -51,18 +65,24 @@ module.exports = {
               { new: true }
             );
           })
-          .then(() => res.json("Created the thought 🎉"));
+          .then(() =>
+            res.status(201).json({ message: "Thought created successfully!", thought })
+          );
       })
       .catch((err) => {
         if (err.name === "ValidationError") {
           console.error("Validation Error:", err);
           return res.status(400).json({
-            message: "Validation failed",
+            message: "Validation failed. Please check the provided data.",
             errors: err.errors,
           });
         }
         console.error("Error creating thought:", err);
-        res.status(500).json(err);
+        res.status(500).json({
+          message:
+            "An unexpected error occurred while creating the thought. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
@@ -73,39 +93,65 @@ module.exports = {
       { $set: req.body },
       { runValidators: true, new: true }
     )
-      .then((thought) =>
-        !thought
-          ? res.status(404).json({ message: "No thought with this ID!" })
-          : res.json(thought)
-      )
+      .then((thought) => {
+        if (!thought) {
+          return res.status(404).json({
+            message: `No thought found with ID: ${req.params.thoughtId}. Please verify the ID and try again.`,
+          });
+        }
+        res.json({
+          message: "Thought updated successfully!",
+          thought,
+        });
+      })
       .catch((err) => {
-        console.error("Error updating thought:", err);
-        res.status(500).json(err);
+        console.error(
+          `Error updating thought with ID: ${req.params.thoughtId}`,
+          err
+        );
+        res.status(500).json({
+          message:
+            "An error occurred while updating the thought. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
   // Delete a thought by ID
   deleteThought(req, res) {
     Thought.findOneAndDelete({ _id: req.params.thoughtId })
-      .then((thought) =>
-        !thought
-          ? res.status(404).json({ message: "No thought with this ID!" })
-          : User.findOneAndUpdate(
-              { thoughts: req.params.thoughtId },
-              { $pull: { thoughts: req.params.thoughtId } },
-              { new: true }
-            )
-      )
-      .then((user) =>
-        !user
-          ? res
-              .status(404)
-              .json({ message: "Thought deleted but no user with this id!" })
-          : res.json({ message: "Thought successfully deleted!" })
-      )
+      .then((thought) => {
+        if (!thought) {
+          return res.status(404).json({
+            message: `No thought found with ID: ${req.params.thoughtId}. Please verify the ID and try again.`,
+          });
+        }
+        return User.findOneAndUpdate(
+          { thoughts: req.params.thoughtId },
+          { $pull: { thoughts: req.params.thoughtId } },
+          { new: true }
+        );
+      })
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({
+            message: `Thought deleted but no associated user found with ID: ${req.params.userId}.`,
+          });
+        }
+        res.json({
+          message: "Thought and associated user data updated successfully!",
+        });
+      })
       .catch((err) => {
-        console.error("Error deleting thought:", err);
-        res.status(500).json(err);
+        console.error(
+          `Error deleting thought with ID: ${req.params.thoughtId}`,
+          err
+        );
+        res.status(500).json({
+          message:
+            "An error occurred while deleting the thought. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
@@ -116,14 +162,24 @@ module.exports = {
       { $addToSet: { reactions: req.body } },
       { runValidators: true, new: true }
     )
-      .then((thought) =>
-        !thought
-          ? res.status(404).json({ message: "No thought with this ID!" })
-          : res.json(thought)
-      )
+      .then((thought) => {
+        if (!thought) {
+          return res.status(404).json({
+            message: `No thought found with ID: ${req.params.thoughtId}. Please verify the ID and try again.`,
+          });
+        }
+        res.json({ message: "Reaction added successfully!", thought });
+      })
       .catch((err) => {
-        console.error("Error adding reaction:", err);
-        res.status(500).json(err);
+        console.error(
+          `Error adding reaction to thought with ID: ${req.params.thoughtId}`,
+          err
+        );
+        res.status(500).json({
+          message:
+            "An error occurred while adding the reaction. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
@@ -136,7 +192,9 @@ module.exports = {
     )
       .then((thought) => {
         if (!thought) {
-          return res.status(404).json({ message: "No thought with this ID!" });
+          return res.status(404).json({
+            message: `No thought found with ID: ${req.params.thoughtId}. Please verify the ID and try again.`,
+          });
         }
 
         // Check if the reaction was removed from the thought document or not found in the thought document at all (i.e., no reaction with that reactionId) and return a 404 status with a message if so
@@ -147,14 +205,23 @@ module.exports = {
         if (!reactionRemoved) {
           return res
             .status(404)
-            .json({ message: "No reaction with this id in the thought!" });
+            .json({
+              message: "No reaction found with this ID in the thought!",
+            });
         }
 
-        return res.json(thought);
+        res.json({ message: "Reaction removed successfully!", thought });
       })
       .catch((err) => {
-        console.error("Error removing reaction:", err);
-        res.status(500).json(err);
+        console.error(
+          `Error removing reaction from thought with ID: ${req.params.thoughtId}`,
+          err
+        );
+        res.status(500).json({
+          message:
+            "An error occurred while removing the reaction. Please try again later.",
+          error: err.message,
+        });
       });
   },
 };
