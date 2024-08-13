@@ -1,160 +1,238 @@
 // Purpose: To control the CRUD operations for thoughts and reactions
 
-// Import the Thought and User models
+const mongoose = require("mongoose"); // Import mongoose
 const { Thought, User } = require("../models");
 
-// Export the thought controller object with methods: getThoughts, getSingleThought, createThought, updateThought, deleteThought, addReaction, and removeReaction
 module.exports = {
   // Get all thoughts
   getThoughts(req, res) {
     Thought.find()
       .then((thoughts) => res.json(thoughts))
       .catch((err) => {
-        console.error("Error fetching thoughts:", err);
-        res.status(500).json(err);
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error fetching thoughts:`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to fetch thoughts.", error: err.message });
       });
   },
 
   // Get a single thought by ID
   getSingleThought(req, res) {
-    Thought.findOne({ _id: req.params.thoughtId })
-      .then((thought) =>
-        !thought
-          ? res.status(404).json({ message: "No thought with that ID" })
-          : res.json(thought)
-      )
+    const thoughtId = req.params.thoughtId;
+
+    if (!mongoose.Types.ObjectId.isValid(thoughtId)) {
+      return res.status(400).json({ message: "Invalid thought ID format." });
+    }
+
+    Thought.findOne({ _id: thoughtId })
+      .then((thought) => {
+        if (!thought) {
+          return res
+            .status(404)
+            .json({ message: `No thought found with ID: ${thoughtId}` });
+        }
+        res.json(thought);
+      })
       .catch((err) => {
-        console.error("Error fetching thought:", err);
-        res.status(500).json(err);
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error fetching thought with ID: ${thoughtId}`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to fetch thought.", error: err.message });
       });
   },
 
-  // The createThought method will first find the user by ID and then create the thought. If the user exists, the thought will be created and the thought's ID will be added to the user's thoughts array. If the user does not exist, a 404 status will be returned with a message indicating that no user was found with that ID. If the validation fails, a 400 status will be returned with a message indicating that validation failed and the errors that occurred. If any other type of error occurs, a 500 status will be returned with the error message.
   // Create a new thought
   createThought(req, res) {
-    // First, find the user by ID
-    User.findById(req.body.userId)
+    const { userId, username } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID format." });
+    }
+
+    User.findById(userId)
       .then((user) => {
         if (!user) {
           return res
             .status(404)
-            .json({ message: "No user found with that ID" });
+            .json({ message: `No user found with ID: ${userId}` });
         }
 
-        // If the user exists, create the thought
+        if (user.username !== username) {
+          return res
+            .status(400)
+            .json({ message: "Username does not match the user ID." });
+        }
+
         return Thought.create(req.body)
           .then((thought) => {
-            // Add the thought's ID to the user's thoughts array
             return User.findOneAndUpdate(
-              { _id: req.body.userId },
+              { _id: userId },
               { $addToSet: { thoughts: thought._id } },
               { new: true }
             );
           })
-          .then(() => res.json("Created the thought 🎉"));
+          .then(() =>
+            res.status(201).json({ message: "Thought created successfully!" })
+          );
       })
       .catch((err) => {
         if (err.name === "ValidationError") {
-          console.error("Validation Error:", err);
+          console.error(
+            `[${req.method} ${req.originalUrl}] Validation Error:`,
+            err
+          );
           return res.status(400).json({
-            message: "Validation failed",
+            message: "Validation failed. Please check the provided data.",
             errors: err.errors,
           });
         }
-        console.error("Error creating thought:", err);
-        res.status(500).json(err);
+
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error creating thought:`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to create thought.", error: err.message });
       });
   },
 
   // Update a thought by ID
   updateThought(req, res) {
+    const thoughtId = req.params.thoughtId;
+
+    if (!mongoose.Types.ObjectId.isValid(thoughtId)) {
+      return res.status(400).json({ message: "Invalid thought ID format." });
+    }
+
     Thought.findOneAndUpdate(
-      { _id: req.params.thoughtId },
+      { _id: thoughtId },
       { $set: req.body },
       { runValidators: true, new: true }
     )
-      .then((thought) =>
-        !thought
-          ? res.status(404).json({ message: "No thought with this ID!" })
-          : res.json(thought)
-      )
+      .then((thought) => {
+        if (!thought) {
+          return res
+            .status(404)
+            .json({ message: `No thought found with ID: ${thoughtId}` });
+        }
+        res.json(thought);
+      })
       .catch((err) => {
-        console.error("Error updating thought:", err);
-        res.status(500).json(err);
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error updating thought with ID: ${thoughtId}`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to update thought.", error: err.message });
       });
   },
 
   // Delete a thought by ID
   deleteThought(req, res) {
-    Thought.findOneAndDelete({ _id: req.params.thoughtId })
-      .then((thought) =>
-        !thought
-          ? res.status(404).json({ message: "No thought with this ID!" })
-          : User.findOneAndUpdate(
-              { thoughts: req.params.thoughtId },
-              { $pull: { thoughts: req.params.thoughtId } },
-              { new: true }
-            )
-      )
-      .then((user) =>
-        !user
-          ? res
-              .status(404)
-              .json({ message: "Thought deleted but no user with this id!" })
-          : res.json({ message: "Thought successfully deleted!" })
-      )
+    const thoughtId = req.params.thoughtId;
+
+    if (!mongoose.Types.ObjectId.isValid(thoughtId)) {
+      return res.status(400).json({ message: "Invalid thought ID format." });
+    }
+
+    Thought.findOneAndDelete({ _id: thoughtId })
+      .then((thought) => {
+        if (!thought) {
+          return res
+            .status(404)
+            .json({ message: `No thought found with ID: ${thoughtId}` });
+        }
+        return User.findOneAndUpdate(
+          { thoughts: thoughtId },
+          { $pull: { thoughts: thoughtId } },
+          { new: true }
+        ).then(() => res.json({ message: "Thought successfully deleted!" }));
+      })
       .catch((err) => {
-        console.error("Error deleting thought:", err);
-        res.status(500).json(err);
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error deleting thought with ID: ${thoughtId}`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to delete thought.", error: err.message });
       });
   },
 
   // Add a reaction to a thought
   addReaction(req, res) {
+    const thoughtId = req.params.thoughtId;
+
+    if (!mongoose.Types.ObjectId.isValid(thoughtId)) {
+      return res.status(400).json({ message: "Invalid thought ID format." });
+    }
+
     Thought.findOneAndUpdate(
-      { _id: req.params.thoughtId },
+      { _id: thoughtId },
       { $addToSet: { reactions: req.body } },
       { runValidators: true, new: true }
     )
-      .then((thought) =>
-        !thought
-          ? res.status(404).json({ message: "No thought with this ID!" })
-          : res.json(thought)
-      )
+      .then((thought) => {
+        if (!thought) {
+          return res
+            .status(404)
+            .json({ message: `No thought found with ID: ${thoughtId}` });
+        }
+        res.json(thought);
+      })
       .catch((err) => {
-        console.error("Error adding reaction:", err);
-        res.status(500).json(err);
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error adding reaction to thought with ID: ${thoughtId}`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to add reaction.", error: err.message });
       });
   },
 
   // Remove a reaction from a thought
   removeReaction(req, res) {
+    const { thoughtId, reactionId } = req.params;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(thoughtId) ||
+      !mongoose.Types.ObjectId.isValid(reactionId)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid thought or reaction ID format." });
+    }
+
     Thought.findOneAndUpdate(
-      { _id: req.params.thoughtId },
-      { $pull: { reactions: { reactionId: req.params.reactionId } } },
+      { _id: thoughtId },
+      { $pull: { reactions: { reactionId } } },
       { runValidators: true, new: true }
     )
       .then((thought) => {
         if (!thought) {
-          return res.status(404).json({ message: "No thought with this ID!" });
-        }
-
-        // Check if the reaction was removed from the thought document or not found in the thought document at all (i.e., no reaction with that reactionId) and return a 404 status with a message if so
-        const reactionRemoved = thought.reactions.some(
-          (reaction) => reaction.reactionId.toString() === req.params.reactionId
-        );
-
-        if (!reactionRemoved) {
           return res
             .status(404)
-            .json({ message: "No reaction with this id in the thought!" });
+            .json({ message: `No thought found with ID: ${thoughtId}` });
         }
-
-        return res.json(thought);
+        res.json({ message: "Reaction removed successfully!" });
       })
       .catch((err) => {
-        console.error("Error removing reaction:", err);
-        res.status(500).json(err);
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error removing reaction from thought with ID: ${thoughtId}`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to remove reaction.", error: err.message });
       });
   },
 };
