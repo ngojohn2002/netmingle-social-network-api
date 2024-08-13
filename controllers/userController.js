@@ -52,7 +52,6 @@ module.exports = {
     })
       .then((existingUser) => {
         if (existingUser) {
-          // Error message for duplicate username or email
           return res.status(400).json({
             message: `Username or email already exists. Please choose another.`,
             existingUser: {
@@ -90,7 +89,6 @@ module.exports = {
           });
       })
       .catch((err) => {
-        // Handle errors that occur during the username/email existence check
         console.error("Error checking for existing user:", err);
         res.status(500).json({
           message:
