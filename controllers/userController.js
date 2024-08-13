@@ -12,7 +12,10 @@ module.exports = {
       .then((users) => res.json(users))
       .catch((err) => {
         console.error("Error fetching users:", err); // Log the error
-        res.status(500).json(err);
+        res.status(500).json({
+          message: "Failed to retrieve users. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
@@ -22,14 +25,18 @@ module.exports = {
       .select("-__v") // Exclude the __v field from the result
       .populate("friends")
       .populate("thoughts")
-      .then((user) =>
-        !user
-          ? res.status(404).json({ message: "No user with that ID" })
-          : res.json(user)
-      )
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({ message: "No user with that ID" });
+        }
+        res.json(user);
+      })
       .catch((err) => {
         console.error("Error fetching user:", err); // Log the error
-        res.status(500).json(err);
+        res.status(500).json({
+          message: "Failed to retrieve the user. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
@@ -41,7 +48,6 @@ module.exports = {
     })
       .then((existingUser) => {
         if (existingUser) {
-          // Error message for duplicate username or email
           return res.status(400).json({
             message: `Username or email already exists. Please choose another.`,
           });
@@ -52,18 +58,14 @@ module.exports = {
           .then((user) => res.json(user))
           .catch((err) => {
             if (err.name === "ValidationError") {
-              // Log the validation error for debugging
-              console.error("Validation Error:", err);              
-
+              console.error("Validation Error:", err);
               return res.status(400).json({
                 message: "Validation failed. Please check the provided data.",
                 errors: err.errors,
               });
             }
 
-            // Log any other errors
-            console.error("Server Error:", err);            
-
+            console.error("Server Error:", err);
             res.status(500).json({
               message: "An unexpected error occurred. Please try again later.",
               error: err.message,
@@ -71,7 +73,6 @@ module.exports = {
           });
       })
       .catch((err) => {
-        // Handle errors that occur during the username/email existence check
         console.error("Error checking for existing user:", err);
         res.status(500).json({
           message:
@@ -88,33 +89,47 @@ module.exports = {
       { $set: req.body },
       { runValidators: true, new: true }
     )
-      .then((user) =>
-        !user
-          ? res.status(404).json({ message: "No user with this ID!" })
-          : res.json(user)
-      )
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({ message: "No user with this ID!" });
+        }
+        res.json(user);
+      })
       .catch((err) => {
         console.error("Error updating user:", err); // Log the error
-        res.status(500).json(err);
+        res.status(500).json({
+          message: "Failed to update the user. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
   // Delete a user by ID
-  deleteUser(req, res) {
-    User.findOneAndDelete({ _id: req.params.userId })
-      .then((user) =>
-        !user
-          ? res.status(404).json({ message: "No user with this ID" })
-          : Thought.deleteMany({ _id: { $in: user.thoughts } })
+deleteUser(req, res) {
+  User.findOneAndDelete({ _id: req.params.userId })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ message: "No user with this ID" });
+      }
+      
+      // Remove the user's ID from all friends lists
+      return User.updateMany(
+        { friends: req.params.userId },
+        { $pull: { friends: req.params.userId } }
       )
-      .then(() =>
-        res.json({ message: "User and associated thoughts deleted!" })
-      )
-      .catch((err) => {
-        console.error("Error deleting user:", err); // Log the error
-        res.status(500).json(err);
-      });
-  },
+      .then(() => Thought.deleteMany({ _id: { $in: user.thoughts } }))
+      .then(() => res.json({ message: "User and associated thoughts deleted, and friends updated!" }));
+    })
+    .catch((err) => {
+      console.error("Error deleting user:", err);
+      if (!res.headersSent) {
+        res.status(500).json({
+          message: "Failed to delete the user. Please try again later.",
+          error: err.message,
+        });
+      }
+    });
+},
 
   // Add a friend
   addFriend(req, res) {
@@ -123,23 +138,30 @@ module.exports = {
       { $addToSet: { friends: req.params.friendId } },
       { new: true }
     )
-      .then((user) =>
-        !user
-          ? res.status(404).json({ message: "No user with this ID!" })
-          : User.findOneAndUpdate(
-              { _id: req.params.friendId },
-              { $addToSet: { friends: req.params.userId } },
-              { new: true }
-            )
-      )
-      .then((friend) =>
-        !friend
-          ? res.status(404).json({ message: "No user with this friend ID!" })
-          : res.json({ message: "Friend added successfully!" })
-      )
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({ message: "No user with this ID!" });
+        }
+        return User.findOneAndUpdate(
+          { _id: req.params.friendId },
+          { $addToSet: { friends: req.params.userId } },
+          { new: true }
+        );
+      })
+      .then((friend) => {
+        if (!friend) {
+          return res
+            .status(404)
+            .json({ message: "No user with this friend ID!" });
+        }
+        res.json({ message: "Friend added successfully!" });
+      })
       .catch((err) => {
         console.error("Error adding friend:", err); // Log the error
-        res.status(500).json(err);
+        res.status(500).json({
+          message: "Failed to add the friend. Please try again later.",
+          error: err.message,
+        });
       });
   },
 
@@ -150,23 +172,30 @@ module.exports = {
       { $pull: { friends: req.params.friendId } },
       { new: true }
     )
-      .then((user) =>
-        !user
-          ? res.status(404).json({ message: "No user with this ID!" })
-          : User.findOneAndUpdate(
-              { _id: req.params.friendId },
-              { $pull: { friends: req.params.userId } },
-              { new: true }
-            )
-      )
-      .then((friend) =>
-        !friend
-          ? res.status(404).json({ message: "No user with this friend ID!" })
-          : res.json({ message: "Friend removed successfully!" })
-      )
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({ message: "No user with this ID!" });
+        }
+        return User.findOneAndUpdate(
+          { _id: req.params.friendId },
+          { $pull: { friends: req.params.userId } },
+          { new: true }
+        );
+      })
+      .then((friend) => {
+        if (!friend) {
+          return res
+            .status(404)
+            .json({ message: "No user with this friend ID!" });
+        }
+        res.json({ message: "Friend removed successfully!" });
+      })
       .catch((err) => {
         console.error("Error removing friend:", err); // Log the error
-        res.status(500).json(err);
+        res.status(500).json({
+          message: "Failed to remove the friend. Please try again later.",
+          error: err.message,
+        });
       });
   },
 };
