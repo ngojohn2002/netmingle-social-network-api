@@ -1,13 +1,27 @@
-// Purpose: To control the CRUD operations for users and friends
-
-// Import the User and Thought models
+const mongoose = require("mongoose");
 const { User, Thought } = require("../models");
 
-// Export the user controller object with methods: getUsers, getSingleUser, createUser, updateUser, deleteUser, addFriend, and removeFriend
+// Utility function to remove __v from the result
+function removeVersionField(doc) {
+  if (Array.isArray(doc)) {
+    return doc.map((d) => {
+      const obj = d.toObject();
+      delete obj.__v;
+      return obj;
+    });
+  } else if (doc) {
+    const obj = doc.toObject();
+    delete obj.__v;
+    return obj;
+  }
+  return doc;
+}
+
 module.exports = {
   // Get all users
   getUsers(req, res) {
     User.find()
+<<<<<<< HEAD
       .select("_id username email thoughts friends") // Explicitly select fields in the desired order
       .then((users) => res.json(users))
       .catch((err) => {
@@ -17,11 +31,24 @@ module.exports = {
             "An error occurred while fetching users. Please try again later.",
           error: err.message,
         });
+=======
+      .select("-__v") // Exclude the __v field from the results
+      .then((users) => res.json(removeVersionField(users)))
+      .catch((err) => {
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error fetching users:`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to fetch users.", error: err.message });
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
       });
   },
 
   // Get a single user by ID
   getSingleUser(req, res) {
+<<<<<<< HEAD
     User.findOne({ _id: req.params.userId })
       .select("_id username email thoughts friends") // Explicitly select fields in the desired order
       .populate("friends")
@@ -31,38 +58,68 @@ module.exports = {
           return res.status(404).json({
             message: `No user found with ID: ${req.params.userId}. Please verify the ID and try again.`,
           });
+=======
+    const userId = req.params.userId;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID format." });
+    }
+
+    User.findOne({ _id: userId })
+      .select("-__v")
+      .populate("friends", "-__v")
+      .populate("thoughts", "-__v")
+      .then((user) => {
+        if (!user) {
+          return res
+            .status(404)
+            .json({ message: `No user found with ID: ${userId}` });
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
         }
-        res.json(user);
+        res.json(removeVersionField(user));
       })
       .catch((err) => {
+<<<<<<< HEAD
         console.error(`Error fetching user with ID: ${req.params.userId}`, err); // Log the error
         res.status(500).json({
           message:
             "An error occurred while fetching the user. Please try again later.",
           error: err.message,
         });
+=======
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error fetching user with ID: ${userId}`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to fetch user.", error: err.message });
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
       });
   },
 
   // Create a new user
   createUser(req, res) {
-    // Check if username or email already exists
     User.findOne({
       $or: [{ username: req.body.username }, { email: req.body.email }],
     })
       .then((existingUser) => {
         if (existingUser) {
           return res.status(400).json({
+<<<<<<< HEAD
             message: `Username or email already exists. Please choose another.`,
             existingUser: {
               username: existingUser.username,
               email: existingUser.email,
             },
+=======
+            message: "Username or email already exists. Please choose another.",
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
           });
         }
 
-        // If no existing user, proceed to create the user
         return User.create(req.body)
+<<<<<<< HEAD
           .then((user) =>
             res.status(201).json({
               message: "User created successfully!",
@@ -73,12 +130,24 @@ module.exports = {
             if (err.name === "ValidationError") {
               // Log the validation error for debugging
               console.error("Validation Error:", err);
+=======
+          .then((user) => {
+            res.status(201).json(removeVersionField(user));
+          })
+          .catch((err) => {
+            if (err.name === "ValidationError") {
+              console.error(
+                `[${req.method} ${req.originalUrl}] Validation Error:`,
+                err
+              );
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
               return res.status(400).json({
                 message: "Validation failed. Please check the provided data.",
                 errors: err.errors,
               });
             }
 
+<<<<<<< HEAD
             // Log any other errors
             console.error("Server Error:", err);
             res.status(500).json({
@@ -86,13 +155,24 @@ module.exports = {
                 "An unexpected error occurred while creating the user. Please try again later.",
               error: err.message,
             });
+=======
+            console.error(
+              `[${req.method} ${req.originalUrl}] Error creating user:`,
+              err
+            );
+            res
+              .status(500)
+              .json({ message: "Failed to create user.", error: err.message });
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
           });
       })
       .catch((err) => {
-        console.error("Error checking for existing user:", err);
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error checking existing user:`,
+          err
+        );
         res.status(500).json({
-          message:
-            "An error occurred while checking for existing user. Please try again later.",
+          message: "Failed to check existing user.",
           error: err.message,
         });
       });
@@ -100,6 +180,7 @@ module.exports = {
 
   // Update a user by ID
   updateUser(req, res) {
+<<<<<<< HEAD
     // Validate userId and username consistency
     User.findOne({ _id: req.params.userId, username: req.body.username })
       .then((user) => {
@@ -134,11 +215,41 @@ module.exports = {
             "An error occurred while updating the user. Please try again later.",
           error: err.message,
         });
+=======
+    const userId = req.params.userId;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID format." });
+    }
+
+    User.findOneAndUpdate(
+      { _id: userId },
+      { $set: req.body },
+      { runValidators: true, new: true }
+    )
+      .then((user) => {
+        if (!user) {
+          return res
+            .status(404)
+            .json({ message: `No user found with ID: ${userId}` });
+        }
+        res.json(removeVersionField(user));
+      })
+      .catch((err) => {
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error updating user with ID: ${userId}`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to update user.", error: err.message });
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
       });
   },
 
   // Delete a user by ID
   deleteUser(req, res) {
+<<<<<<< HEAD
     User.findOneAndDelete({ _id: req.params.userId })
       .then((user) => {
         if (!user) {
@@ -163,16 +274,18 @@ module.exports = {
         });
       });
   },
+=======
+    const userId = req.params.userId;
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
 
-  // Add a friend
-  addFriend(req, res) {
-    User.findOneAndUpdate(
-      { _id: req.params.userId },
-      { $addToSet: { friends: req.params.friendId } },
-      { new: true }
-    )
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID format." });
+    }
+
+    User.findOneAndDelete({ _id: userId })
       .then((user) => {
         if (!user) {
+<<<<<<< HEAD
           return res.status(404).json({
             message: `No user found with ID: ${req.params.userId}. Please verify the ID and try again.`,
           });
@@ -205,10 +318,90 @@ module.exports = {
             "An error occurred while adding the friend. Please try again later.",
           error: err.message,
         });
+=======
+          return res
+            .status(404)
+            .json({ message: `No user found with ID: ${userId}` });
+        }
+        return Thought.deleteMany({ _id: { $in: user.thoughts } })
+          .then(() =>
+            res.json({ message: "User and associated thoughts deleted!" })
+          )
+          .catch((err) => {
+            console.error(
+              `[${req.method} ${req.originalUrl}] Error deleting user's thoughts:`,
+              err
+            );
+            res.status(500).json({
+              message: "Failed to delete user's thoughts.",
+              error: err.message,
+            });
+          });
+      })
+      .catch((err) => {
+        console.error(
+          `[${req.method} ${req.originalUrl}] Error deleting user with ID: ${userId}`,
+          err
+        );
+        res
+          .status(500)
+          .json({ message: "Failed to delete user.", error: err.message });
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
       });
   },
 
+  // Add a friend
+  async addFriend(req, res) {
+    const { userId, friendId } = req.params;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(userId) ||
+      !mongoose.Types.ObjectId.isValid(friendId)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid user or friend ID format." });
+    }
+
+    try {
+      const user = await User.findOneAndUpdate(
+        { _id: userId },
+        { $addToSet: { friends: friendId } },
+        { new: true }
+      );
+
+      if (!user) {
+        return res
+          .status(404)
+          .json({ message: `No user found with ID: ${userId}` });
+      }
+
+      const friend = await User.findOneAndUpdate(
+        { _id: friendId },
+        { $addToSet: { friends: userId } },
+        { new: true }
+      );
+
+      if (!friend) {
+        return res
+          .status(404)
+          .json({ message: `No friend found with ID: ${friendId}` });
+      }
+
+      res.json({ message: "Friend added successfully!" });
+    } catch (err) {
+      console.error(
+        `[${req.method} ${req.originalUrl}] Error adding friend:`,
+        err
+      );
+      res
+        .status(500)
+        .json({ message: "Failed to add friend.", error: err.message });
+    }
+  },
+
   // Remove a friend
+<<<<<<< HEAD
   removeFriend(req, res) {
     User.findOneAndUpdate(
       { _id: req.params.userId },
@@ -250,5 +443,54 @@ module.exports = {
           error: err.message,
         });
       });
+=======
+  async removeFriend(req, res) {
+    const { userId, friendId } = req.params;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(userId) ||
+      !mongoose.Types.ObjectId.isValid(friendId)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid user or friend ID format." });
+    }
+
+    try {
+      const user = await User.findOneAndUpdate(
+        { _id: userId },
+        { $pull: { friends: friendId } },
+        { new: true }
+      );
+
+      if (!user) {
+        return res
+          .status(404)
+          .json({ message: `No user found with ID: ${userId}` });
+      }
+
+      const friend = await User.findOneAndUpdate(
+        { _id: friendId },
+        { $pull: { friends: userId } },
+        { new: true }
+      );
+
+      if (!friend) {
+        return res
+          .status(404)
+          .json({ message: `No friend found with ID: ${friendId}` });
+      }
+
+      res.json({ message: "Friend removed successfully!" });
+    } catch (err) {
+      console.error(
+        `[${req.method} ${req.originalUrl}] Error removing friend:`,
+        err
+      );
+      res
+        .status(500)
+        .json({ message: "Failed to remove friend.", error: err.message });
+    }
+>>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
   },
 };
