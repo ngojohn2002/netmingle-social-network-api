@@ -466,7 +466,7 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
 
 ## Walkthrough Video
 
-[Link to walkthrough video demonstrating the functionality of the application](#)
+[Link to walkthrough video demonstrating the functionality of the application](https://youtu.be/6CM8u4KytDE)
 
 [Back to Table of Contents](#table-of-contents)
 
