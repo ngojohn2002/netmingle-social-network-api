@@ -467,11 +467,7 @@ Refer to the [API Endpoints](#api-endpoints) section for more details on availab
 
 ## Walkthrough Video
 
-<<<<<<< HEAD
-[Link to walkthrough video demonstrating the functionality of the application](https://youtu.be/6CM8u4KytDE)
-=======
 Link to walkthrough video demonstrating the functionality of the application: [https://www.youtube.com/watch?v=6CM8u4KytDE](https://www.youtube.com/watch?v=6CM8u4KytDE)
->>>>>>> 678ac43 (fixed thoughtController.js, userController.js; added walkthrough video link to README.md)
 
 [Back to Table of Contents](#table-of-contents)
 
